@@ -5,3 +5,4 @@ qemu.aqmp.models module
    :members:
    :undoc-members:
    :show-inheritance:
+   :member-order: bysource

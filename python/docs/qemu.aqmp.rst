@@ -1,10 +1,12 @@
-qemu.aqmp package
-=================
+aqmp - Asynchronous QMP
+=======================
 
 .. automodule:: qemu.aqmp
    :members:
    :undoc-members:
    :show-inheritance:
+   :noindex:
+   :member-order: bysource
 
 Submodules
 ----------

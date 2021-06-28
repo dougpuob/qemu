@@ -1,5 +1,5 @@
-qemu.utils package
-==================
+utils - Miscellaneous Utilities
+===============================
 
 .. automodule:: qemu.utils
    :members:

@@ -1,5 +1,5 @@
-qemu.qmp package
-================
+qmp - QEMU Machine Protocol
+===========================
 
 .. automodule:: qemu.qmp
    :members:

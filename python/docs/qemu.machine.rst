@@ -1,10 +1,13 @@
-qemu.machine package
-====================
+machine - Run QEMU VMs
+======================
 
 .. automodule:: qemu.machine
    :members:
    :undoc-members:
    :show-inheritance:
+   :private-members:
+   :noindex:
+   :member-order: bysource
 
 Submodules
 ----------

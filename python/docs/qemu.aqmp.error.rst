@@ -5,3 +5,4 @@ qemu.aqmp.error module
    :members:
    :undoc-members:
    :show-inheritance:
+   :member-order: bysource
