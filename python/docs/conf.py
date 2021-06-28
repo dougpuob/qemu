@@ -9,18 +9,29 @@
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#
-# import os
-# import sys
-# sys.path.insert(0, '/home/jsnow/src/qemu/python/qemu')
+
+import os
+import sys
+sys.path.insert(0, os.path.abspath('../'))
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'qemu'
-copyright = '2021, Author'
-author = 'Author'
+project = 'QEMU Python Library'
+copyright = '2009-2021, The QEMU Project Developers'
+author = 'John Snow'
 
+try:
+    extracted_version = None
+    with open('../VERSION') as f:
+        extracted_version = f.readline().strip()
+except:
+    pass
+finally:
+    if extracted_version:
+        version = release = extracted_version
+    else:
+        version = release = "unknown version"
 
 # -- General configuration ---------------------------------------------------
 
@@ -51,13 +62,30 @@ language = 'en'
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
+# Interpret `this` to be a cross-reference to "anything".
+default_role = 'any'
 
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
+
+# https://sphinx-rtd-theme.readthedocs.io/en/stable/configuring.html#theme-options
+html_theme_options = {
+    'collapse_navigation': False,
+    'display_version': True,
+    'prev_next_buttons_location': 'both',
+}
+
+html_context = {
+    "display_gitlab": True,
+    "gitlab_user": "jsnow",
+    "gitlab_repo": "qemu",
+    "gitlab_version": "python-async-qmp-aqmp",
+    "conf_py_path": "/python/docs/",
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
