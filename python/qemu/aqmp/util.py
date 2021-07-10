@@ -11,13 +11,22 @@ adding information into the logging stream.
 """
 
 import asyncio
+import inspect
+import io
 import sys
 import traceback
+from types import CoroutineType, FrameType, GeneratorType
 from typing import (
+    IO,
     Any,
+    Awaitable,
     Coroutine,
+    Generator,
+    List,
     Optional,
+    Tuple,
     TypeVar,
+    Union,
     cast,
 )
 
@@ -100,6 +109,20 @@ def create_task(coro: Coroutine[Any, Any, T],
 
     # Python 3.6:
     return asyncio.ensure_future(coro, loop=loop)
+
+
+def get_task_coro(task: 'asyncio.Task[Any]') -> Coroutine[Any, Any, Any]:
+    """
+    Python 3.6 and 3.7 compatible `asyncio.Task.get_coro` wrapper.
+
+    :param task: The `asyncio.Task` to retrieve the `asyncio.coroutine` for.
+    :return: The `asyncio.coroutine` object wrapped by this `asyncio.Task`.
+    """
+    if sys.version_info >= (3, 8):
+        return task.get_coro()
+
+    # Python 3.6, 3.7:
+    return cast(Coroutine[Any, Any, Any], getattr(task, '_coro'))
 
 
 def is_closing(writer: asyncio.StreamWriter) -> bool:
@@ -205,3 +228,100 @@ def pretty_traceback(prefix: str = "  | ") -> str:
 
     # The last line is always empty, omit it
     return "\n".join(exc_lines[:-1])
+
+
+def walk_awaitable(obj: Union[
+        Awaitable[Any],
+        Generator[Any, Any, Any],
+        None,
+]) -> Generator[Tuple[FrameType, int], None, None]:
+    """
+    Walk an Awaitable/Generator and yield stack frames.
+
+    Mimics `traceback.walk_tb`, except instead of walking an execution
+    traceback with :py:attr:`tb_next`, it walks `await` statements to
+    produce an "async traceback". Yields the frame and line number for
+    each frame.
+    """
+    if isinstance(obj, asyncio.Task):
+        obj = get_task_coro(obj)
+
+    while obj is not None:
+        if isinstance(obj, GeneratorType):
+            yield obj.gi_frame, obj.gi_frame.f_lineno
+            obj = cast(Generator[Any, Any, Any], obj.gi_yieldfrom)
+        elif isinstance(obj, CoroutineType):
+            if obj.cr_frame is None:
+                # None when state is CORO_CLOSED
+                break
+            yield obj.cr_frame, obj.cr_frame.f_lineno
+            obj = cast(Awaitable[Any], obj.cr_await)
+        else:
+            break
+
+
+def extract_awaitable(
+        aw: Awaitable[Any],
+        limit: Optional[int] = None,
+) -> traceback.StackSummary:
+    """
+    Return a `traceback.StackSummary` object representing a list of
+    pre-processed entries from an awaitable.
+
+    Written by analogy to `traceback.extract_tb`.
+    """
+    return traceback.StackSummary.extract(walk_awaitable(aw), limit=limit)
+
+
+def format_awaitable(aw: Awaitable[Any],
+                     limit: Optional[int] = None) -> List[str]:
+    """
+    A shorthand for 'format_list(extract_awaitable(aw, limit))'.
+
+    Written by analogy to `traceback.format_tb`.
+    """
+    return extract_awaitable(aw, limit).format()
+
+
+def print_awaitable(
+        aw: Awaitable[Any],
+        limit: Optional[int] = None,
+        file: Optional[IO[str]] = None
+) -> None:
+    """
+    Print up to 'limit' await trace entries from the awaitable 'aw'.
+
+    If 'limit' is omitted or None, all entries are printed.  If 'file'
+    is omitted or None, the output goes to sys.stderr; otherwise
+    'file' should be an open file or file-like object with a write()
+    method.
+
+    Written by analogy to `traceback.print_tb`.
+    """
+    traceback.print_list(extract_awaitable(aw, limit=limit), file)
+
+
+def debug_task(task: 'asyncio.Task[Any]') -> str:
+    """
+    Return formatted information (and an 'await trace') for a given Task.
+
+    Returns a string that resembles a traceback, except the header has
+    information about the Task under question, followed by a trace of
+    what that Task is currently awaiting.
+
+    :param task: The Task to return trace information for.
+    :return: A string, ready to print or log.
+    """
+    output = io.StringIO("Task ")
+
+    if sys.version_info >= (3, 8):
+        name = task.get_name()
+        print(repr(name), end=' ', file=output)
+
+    coro = get_task_coro(task)
+    status = inspect.getcoroutinestate(coro)
+
+    print(f"at 0x{id(coro):x} [{status}]:", file=output)
+    print_awaitable(task, file=output)
+
+    return output.getvalue()
