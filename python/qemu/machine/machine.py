@@ -38,8 +38,8 @@ from typing import (
     Type,
 )
 
+from qemu.aqmp.sync_qmp import QEMUMonitorProtocol
 from qemu.qmp import (  # pylint: disable=import-error
-    QEMUMonitorProtocol,
     QMPMessage,
     QMPReturnValue,
     SocketAddrT,
@@ -165,6 +165,7 @@ class QEMUMachine:
         self._console_socket: Optional[socket.socket] = None
         self._remove_files: List[str] = []
         self._user_killed = False
+        self._has_quit = False
 
     def __enter__(self) -> 'QEMUMachine':
         return self
@@ -354,7 +355,11 @@ class QEMUMachine:
         self._early_cleanup()
 
         if self._qmp_connection:
-            self._qmp.close()
+            try:
+                self._qmp.close()
+            except EOFError:
+                if not self._has_quit:
+                    raise
             self._qmp_connection = None
 
         if self._qemu_log_file is not None:
@@ -382,6 +387,7 @@ class QEMUMachine:
                 command = ''
             LOG.warning(msg, -int(exitcode), command)
 
+        self._has_quit = False
         self._user_killed = False
         self._launched = False
 
@@ -477,6 +483,7 @@ class QEMUMachine:
             if not has_quit:
                 # Might raise ConnectionReset
                 self._qmp.cmd('quit')
+                self._has_quit = True
 
         # May raise subprocess.TimeoutExpired
         self._subp.wait(timeout=timeout)

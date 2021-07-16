@@ -1339,6 +1339,7 @@ def execute_setup_common(supported_fmts: Sequence[str] = (),
     if debug:
         sys.argv.remove('-d')
     logging.basicConfig(level=(logging.DEBUG if debug else logging.WARN))
+    logging.getLogger("qemu.aqmp.qmp_client").setLevel(logging.CRITICAL)
 
     _verify_image_format(supported_fmts, unsupported_fmts)
     _verify_protocol(supported_protocols, unsupported_protocols)
