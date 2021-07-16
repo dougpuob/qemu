@@ -374,7 +374,9 @@ class QEMUMonitorProtocol:
         @return The list of available QMP events.
         """
         self.__get_events(wait)
-        return self.__events
+        events = self.__events
+        self.__events = []
+        return events
 
     def clear_events(self) -> None:
         """
