@@ -185,6 +185,7 @@ struct USBDescOther {
 struct USBDescMSOS {
     const char                *CompatibleID;
     const wchar_t             *Label;
+    bool                      IsWinUsb;
     bool                      SelectiveSuspendEnabled;
 };
 

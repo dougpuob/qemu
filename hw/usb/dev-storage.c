@@ -137,8 +137,7 @@ static const USBDescIface desc_iface_super = {
             .bmAttributes          = USB_ENDPOINT_XFER_BULK,
             .wMaxPacketSize        = 1024,
             .bMaxBurst             = 4,
-        },
-        {
+        },{
             .bEndpointAddress      = USB_DIR_OUT | 0x02,
             .bmAttributes          = USB_ENDPOINT_XFER_BULK,
             .wMaxPacketSize        = 1024,
@@ -159,13 +158,13 @@ static const USBDescDevice desc_device_super = {
             .bmAttributes          = USB_CFG_ATT_ONE | USB_CFG_ATT_SELFPOWER,
             .nif = 1,
             .ifs = &desc_iface_super,
-        }
+        },
     },
 };
 
 static const USBDescMSOS desc_msos = {
     .CompatibleID = "WinUSB",
-    .SelectiveSuspendEnabled = false,
+    .IsWinUsb     = true,
 };
 
 static const USBDesc desc = {

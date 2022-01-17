@@ -280,13 +280,7 @@ static void do_parameter(USBDevice *s, USBPacket *p)
     value   = (s->setup_buf[3] << 8) | s->setup_buf[2];
     index   = (s->setup_buf[5] << 8) | s->setup_buf[4];
 
-    qemu_log("do_parameter() request = 0x%X\n", request);
-    qemu_log("do_parameter() value   = 0x%X\n", value);
-    qemu_log("do_parameter() index   = 0x%X\n", index);
-
     setup_len = (s->setup_buf[7] << 8) | s->setup_buf[6];
-    qemu_log("do_parameter() setup_len   = 0x%X\n", setup_len);
-
     if (setup_len > sizeof(s->data_buf)) {
         fprintf(stderr,
                 "usb_generic_handle_packet: ctrl buffer too small (%u > %zu)\n",

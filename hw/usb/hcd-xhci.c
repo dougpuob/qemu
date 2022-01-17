@@ -1681,11 +1681,11 @@ static int xhci_fire_ctl_transfer(XHCIState *xhci, XHCITransfer *xfer)
     uint16_t wIndex       = (xfer->packet.parameter >> 32) & 0xFFFF;
     uint16_t wLength      = (xfer->packet.parameter >> 48) & 0xFFFF;
 
-    qemu_log("xhci_fire_ctl_transfer() bmRequestType = 0x%X\n", bmRequestType);
-    qemu_log("xhci_fire_ctl_transfer() bRequest      = 0x%X\n", bRequest);
-    qemu_log("xhci_fire_ctl_transfer() wValue        = 0x%X\n", wValue);
-    qemu_log("xhci_fire_ctl_transfer() wIndex        = 0x%X\n", wIndex);
-    qemu_log("xhci_fire_ctl_transfer() wLength       = 0x%X\n", wLength);
+    printf("xhci_fire_ctl_transfer() bmRequestType = 0x%X\n", bmRequestType);
+    printf("xhci_fire_ctl_transfer() bRequest      = 0x%X\n", bRequest);
+    printf("xhci_fire_ctl_transfer() wValue        = 0x%X\n", wValue);
+    printf("xhci_fire_ctl_transfer() wIndex        = 0x%X\n", wIndex);
+    printf("xhci_fire_ctl_transfer() wLength       = 0x%X\n", wLength);
 
     usb_handle_packet(xfer->packet.ep->dev, &xfer->packet);
     xhci_try_complete_packet(xfer);
