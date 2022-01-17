@@ -48,6 +48,28 @@ int usb_desc_device(const USBDescID *id, const USBDescDevice *dev,
 
     d->u.device.bNumConfigurations = dev->bNumConfigurations;
 
+    if (id->idVendor == 0x05E3) {
+        printf("usb_desc_device\n");
+        printf("  d->bLength                     : 0x%X\n", d->bLength);
+        printf("  d->bDescriptorType             : 0x%X\n", d->bDescriptorType);
+        printf("  d->u.device.bcdUSB_lo          : 0x%X\n", d->u.device.bcdUSB_lo);
+        printf("  d->u.device.bcdUSB_hi          : 0x%X\n", d->u.device.bcdUSB_hi);
+        printf("  d->u.device.bDeviceClass       : 0x%X\n", d->u.device.bDeviceClass);
+        printf("  d->u.device.bDeviceSubClass    : 0x%X\n", d->u.device.bDeviceSubClass);
+        printf("  d->u.device.bDeviceProtocol    : 0x%X\n", d->u.device.bDeviceProtocol);
+        printf("  d->u.device.bMaxPacketSize0    : 0x%X\n", d->u.device.bMaxPacketSize0);
+        printf("  d->u.device.idVendor_lo        : 0x%X\n", d->u.device.idVendor_lo);
+        printf("  d->u.device.idVendor_hi        : 0x%X\n", d->u.device.idVendor_hi);
+        printf("  d->u.device.idProduct_lo       : 0x%X\n", d->u.device.idProduct_lo);
+        printf("  d->u.device.idProduct_hi       : 0x%X\n", d->u.device.idProduct_hi);
+        printf("  d->u.device.bcdDevice_lo       : 0x%X\n", d->u.device.bcdDevice_lo);
+        printf("  d->u.device.bcdDevice_hi       : 0x%X\n", d->u.device.bcdDevice_hi);
+        printf("  d->u.device.iManufacturer      : 0x%X\n", d->u.device.iManufacturer);
+        printf("  d->u.device.iProduct           : 0x%X\n", d->u.device.iProduct );
+        printf("  d->u.device.iSerialNumber      : 0x%X\n", d->u.device.iSerialNumber);
+        printf("  d->u.device.bNumConfigurations : 0x%X\n", d->u.device.bNumConfigurations);
+    }
+    
     return bLength;
 }
 
@@ -121,6 +143,18 @@ int usb_desc_config(const USBDescConfig *conf, int flags,
 
     d->u.config.wTotalLength_lo = usb_lo(wTotalLength);
     d->u.config.wTotalLength_hi = usb_hi(wTotalLength);
+
+    printf("usb_desc_config\n");
+    printf("  d->bLength                      : 0x%X\n", d->bLength);
+    printf("  d->bDescriptorType              : 0x%X\n", d->bDescriptorType);
+    printf("  d->u.config.bNumInterfaces      : 0x%X\n", d->u.config.bNumInterfaces);
+    printf("  d->u.config.bConfigurationValue : 0x%X\n", d->u.config.bConfigurationValue);
+    printf("  d->u.config.iConfiguration      : 0x%X\n", d->u.config.iConfiguration);
+    printf("  d->u.config.bmAttributes        : 0x%X\n", d->u.config.bmAttributes);
+    printf("  d->u.config.bMaxPower           : 0x%X\n", d->u.config.bMaxPower);
+    printf("  d->u.config.wTotalLength_lo     : 0x%X\n", d->u.config.wTotalLength_lo);
+    printf("  d->u.config.wTotalLength_hi     : 0x%X\n", d->u.config.wTotalLength_hi);
+
     return wTotalLength;
 }
 
@@ -198,6 +232,18 @@ int usb_desc_iface(const USBDescIface *iface, int flags,
         pos += rc;
     }
 
+    printf("usb_desc_iface\n");
+    printf("  d->bLength                        : 0x%X\n", d->bLength);
+    printf("  d->bDescriptorType                : 0x%X\n", d->bDescriptorType);
+    printf("  d->u.interface.bInterfaceNumber   : 0x%X\n", d->u.interface.bInterfaceNumber);
+    printf("  d->u.interface.bAlternateSetting  : 0x%X\n", d->u.interface.bAlternateSetting);
+    printf("  d->u.interface.bNumEndpoints      : 0x%X\n", d->u.interface.bNumEndpoints);
+    printf("  d->u.interface.bInterfaceClass    : 0x%X\n", d->u.interface.bInterfaceClass);
+    printf("  d->u.interface.bInterfaceSubClass : 0x%X\n", d->u.interface.bInterfaceSubClass);
+    printf("  d->u.interface.bInterfaceProtocol : 0x%X\n", d->u.interface.bInterfaceProtocol );
+    printf("  d->u.interface.iInterface         : 0x%X\n", d->u.interface.iInterface);
+
+
     return pos;
 }
 
@@ -243,6 +289,17 @@ int usb_desc_endpoint(const USBDescEndpoint *ep, int flags,
     if (ep->extra) {
         memcpy(dest + bLength + superlen, ep->extra, extralen);
     }
+    
+    printf("usb_desc_endpoint\n");
+    printf("  d->bLength                        : 0x%X\n", d->bLength);
+    printf("  d->bDescriptorType                : 0x%X\n", d->bDescriptorType);    
+    printf("  d->u.endpoint.bEndpointAddress    : 0x%X\n", d->u.endpoint.bEndpointAddress);
+    printf("  d->u.endpoint.bmAttributes        : 0x%X\n", d->u.endpoint.bmAttributes);
+    printf("  d->u.endpoint.wMaxPacketSize_lo   : 0x%X\n", d->u.endpoint.wMaxPacketSize_lo);
+    printf("  d->u.endpoint.wMaxPacketSize_hi   : 0x%X\n", d->u.endpoint.wMaxPacketSize_hi);
+    printf("  d->u.endpoint.bInterval           : 0x%X\n", d->u.endpoint.bInterval);
+    printf("  d->u.endpoint.bRefresh            : 0x%X\n", d->u.endpoint.bRefresh);
+    printf("  d->u.endpoint.bSynchAddress       : 0x%X\n", d->u.endpoint.bSynchAddress);
 
     return bLength + extralen + superlen;
 }
@@ -513,6 +570,14 @@ void usb_desc_init(USBDevice *dev)
         dev->flags |= (1 << USB_DEV_FLAG_MSOS_DESC_IN_USE);
         usb_desc_set_string(dev, 0xee, "MSFT100Q");
     }
+
+     if (0 == memcmp("QEMU USB MSD", dev->product_desc, 12)) {
+         usb_desc_set_string(dev, 0xee, "MSFT100 ");
+    //     usb_desc_set_string(dev, 0x01, "GenesysLogic");
+    //     usb_desc_set_string(dev, 0x02, "Win USB Dev");
+         usb_desc_set_string(dev, 0x03, "000000000012");
+    }
+
     usb_desc_setdefaults(dev);
 }
 
@@ -538,6 +603,7 @@ void usb_desc_set_string(USBDevice *dev, uint8_t index, const char *str)
     g_free(s->str);
     s->str = g_strdup(str);
 }
+
 
 /*
  * This function creates a serial number for a usb device.
@@ -616,6 +682,13 @@ int usb_desc_string(USBDevice *dev, int index, uint8_t *dest, size_t len)
     }
 
     bLength = strlen(str) * 2 + 2;
+    int newlen = strlen(str);
+    bool isMsft100 = false;
+    if (0 == memcmp("MSFT100 ", str, newlen)) {
+         isMsft100 = true;
+    }
+
+
     dest[0] = bLength;
     dest[1] = USB_DT_STRING;
     i = 0; pos = 2;
@@ -623,6 +696,13 @@ int usb_desc_string(USBDevice *dev, int index, uint8_t *dest, size_t len)
         dest[pos++] = str[i++];
         dest[pos++] = 0;
     }
+    
+    if (isMsft100) {
+        dest[bLength-1] = 0x00;
+        dest[bLength-2] = 0x00;
+    }
+
+    printf("str=%s\n", str);
     return pos;
 }
 
@@ -647,13 +727,21 @@ int usb_desc_get_descriptor(USBDevice *dev, USBPacket *p,
     if (dev->device->bcdUSB >= 0x0300) {
         flags |= USB_DESC_FLAG_SUPER;
     }
-
+        
     switch(type) {
     case USB_DT_DEVICE:
+        if (0 == memcmp("QEMU USB MSD", dev->product_desc, 12)) {
+            printf("\n");
+            printf("dev->product_desc=%s USB_DT_DEVICE\n", dev->product_desc);
+        }
         ret = usb_desc_device(&desc->id, dev->device, msos, buf, sizeof(buf));
-        trace_usb_desc_device(dev->addr, len, ret);
+        trace_usb_desc_device(dev->addr, len, ret);        
         break;
     case USB_DT_CONFIG:
+        if (0 == memcmp("QEMU USB MSD", dev->product_desc, 12)) {
+            printf("\n");
+            printf("dev->product_desc=%s USB_DT_CONFIG\n", dev->product_desc);
+        }
         if (index < dev->device->bNumConfigurations) {
             ret = usb_desc_config(dev->device->confs + index, flags,
                                   buf, sizeof(buf));
@@ -661,16 +749,28 @@ int usb_desc_get_descriptor(USBDevice *dev, USBPacket *p,
         trace_usb_desc_config(dev->addr, index, len, ret);
         break;
     case USB_DT_STRING:
+        if (0 == memcmp("QEMU USB MSD", dev->product_desc, 12)) {
+            printf("\n");
+            printf("dev->product_desc=%s USB_DT_STRING\n", dev->product_desc);
+        }
         ret = usb_desc_string(dev, index, buf, sizeof(buf));
         trace_usb_desc_string(dev->addr, index, len, ret);
         break;
     case USB_DT_DEVICE_QUALIFIER:
+        if (0 == memcmp("QEMU USB MSD", dev->product_desc, 12)) {
+            printf("\n");
+            printf("dev->product_desc=%s USB_DT_DEVICE_QUALIFIER\n", dev->product_desc);
+        }
         if (other_dev != NULL) {
             ret = usb_desc_device_qualifier(other_dev, buf, sizeof(buf));
         }
         trace_usb_desc_device_qualifier(dev->addr, len, ret);
         break;
     case USB_DT_OTHER_SPEED_CONFIG:
+        if (0 == memcmp("QEMU USB MSD", dev->product_desc, 12)) {
+            printf("\n");
+            printf("dev->product_desc=%s USB_DT_OTHER_SPEED_CONFIG\n", dev->product_desc);
+        }
         if (other_dev != NULL && index < other_dev->bNumConfigurations) {
             ret = usb_desc_config(other_dev->confs + index, flags,
                                   buf, sizeof(buf));
@@ -679,15 +779,27 @@ int usb_desc_get_descriptor(USBDevice *dev, USBPacket *p,
         trace_usb_desc_other_speed_config(dev->addr, index, len, ret);
         break;
     case USB_DT_BOS:
+        if (0 == memcmp("QEMU USB MSD", dev->product_desc, 12)) {
+            printf("\n");
+            printf("dev->product_desc=%s USB_DT_BOS\n", dev->product_desc);
+        }
         ret = usb_desc_bos(desc, buf, sizeof(buf));
         trace_usb_desc_bos(dev->addr, len, ret);
         break;
 
     case USB_DT_DEBUG:
+        if (0 == memcmp("QEMU USB MSD", dev->product_desc, 12)) {
+            printf("\n");
+            printf("dev->product_desc=%s USB_DT_DEBUG\n", dev->product_desc);
+        }
         /* ignore silently */
         break;
 
     default:
+        if (0 == memcmp("QEMU USB MSD", dev->product_desc, 12)) {
+            printf("\n");
+            printf("dev->product_desc=%s unknown\n", dev->product_desc);
+        }
         fprintf(stderr, "%s: %d unknown type %d (len %zd)\n", __func__,
                 dev->addr, type, len);
         break;
@@ -804,6 +916,35 @@ int usb_desc_handle_control(USBDevice *dev, USBPacket *p,
         if (msos) {
             ret = usb_desc_msos(desc, p, index, data, length);
             trace_usb_desc_msos(dev->addr, index, length, ret);
+        }
+        break;
+    case 0xC000:
+        if (4 == index && 16 == length) {
+            uint8_t Data[] = {
+                0x28, 0x00, 0x00, 0x00, 
+                0x00, 0x01, 0x04, 0x00,
+                0x01, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00};
+            memcpy(data, Data, length);
+            p->actual_length = length;
+            ret = 0;
+        }
+        
+        if (4 == index && 40 == length) {
+            uint8_t Data[] = {
+                0x28, 0x00, 0x00, 0x00, 
+                0x00, 0x01, 0x04, 0x00,
+                0x01, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00,        
+                0x00, 0x01, 0x57, 0x49,
+                0x4E, 0x55, 0x53, 0x42,
+                0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00 };
+            memcpy(data, Data, length);
+            p->actual_length = length;
+            ret = 0;
         }
         break;
 

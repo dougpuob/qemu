@@ -47,9 +47,9 @@ enum {
 };
 
 static const USBDescStrings desc_strings = {
-    [STR_MANUFACTURER] = "QEMU",
-    [STR_PRODUCT]      = "QEMU USB HARDDRIVE",
-    [STR_SERIALNUMBER] = "1",
+    [STR_MANUFACTURER] = "GenesysLogic",
+    [STR_PRODUCT]      = "Win USB Dev",
+    [STR_SERIALNUMBER] = "000000000012",
     [STR_CONFIG_FULL]  = "Full speed config (usb 1.1)",
     [STR_CONFIG_HIGH]  = "High speed config (usb 2.0)",
     [STR_CONFIG_SUPER] = "Super speed config (usb 3.0)",
@@ -93,7 +93,7 @@ static const USBDescDevice desc_device_full = {
 static const USBDescIface desc_iface_high = {
     .bInterfaceNumber              = 0,
     .bNumEndpoints                 = 2,
-    .bInterfaceClass               = USB_CLASS_MASS_STORAGE,
+    .bInterfaceClass               = USB_CLASS_VENDOR_SPEC,
     .bInterfaceSubClass            = 0x06, /* SCSI */
     .bInterfaceProtocol            = 0x50, /* Bulk */
     .eps = (USBDescEndpoint[]) {
@@ -111,7 +111,7 @@ static const USBDescIface desc_iface_high = {
 
 static const USBDescDevice desc_device_high = {
     .bcdUSB                        = 0x0200,
-    .bMaxPacketSize0               = 64,
+    .bMaxPacketSize0               = 9,
     .bNumConfigurations            = 1,
     .confs = (USBDescConfig[]) {
         {
@@ -128,7 +128,7 @@ static const USBDescDevice desc_device_high = {
 static const USBDescIface desc_iface_super = {
     .bInterfaceNumber              = 0,
     .bNumEndpoints                 = 2,
-    .bInterfaceClass               = USB_CLASS_MASS_STORAGE,
+    .bInterfaceClass               = USB_CLASS_VENDOR_SPEC,
     .bInterfaceSubClass            = 0x06, /* SCSI */
     .bInterfaceProtocol            = 0x50, /* Bulk */
     .eps = (USBDescEndpoint[]) {
@@ -136,37 +136,43 @@ static const USBDescIface desc_iface_super = {
             .bEndpointAddress      = USB_DIR_IN | 0x01,
             .bmAttributes          = USB_ENDPOINT_XFER_BULK,
             .wMaxPacketSize        = 1024,
-            .bMaxBurst             = 15,
-        },{
+            .bMaxBurst             = 4,
+        },
+        {
             .bEndpointAddress      = USB_DIR_OUT | 0x02,
             .bmAttributes          = USB_ENDPOINT_XFER_BULK,
             .wMaxPacketSize        = 1024,
-            .bMaxBurst             = 15,
+            .bMaxBurst             = 4,
         },
     }
 };
 
 static const USBDescDevice desc_device_super = {
     .bcdUSB                        = 0x0300,
-    .bMaxPacketSize0               = 9,
+    .bMaxPacketSize0               = 64,
     .bNumConfigurations            = 1,
     .confs = (USBDescConfig[]) {
         {
             .bNumInterfaces        = 1,
             .bConfigurationValue   = 1,
-            .iConfiguration        = STR_CONFIG_SUPER,
+            .iConfiguration        = 0,
             .bmAttributes          = USB_CFG_ATT_ONE | USB_CFG_ATT_SELFPOWER,
             .nif = 1,
             .ifs = &desc_iface_super,
-        },
+        }
     },
+};
+
+static const USBDescMSOS desc_msos = {
+    .CompatibleID = "WinUSB",
+    .SelectiveSuspendEnabled = false,
 };
 
 static const USBDesc desc = {
     .id = {
-        .idVendor          = 0x46f4, /* CRC16() of "QEMU" */
-        .idProduct         = 0x0001,
-        .bcdDevice         = 0,
+        .idVendor          = 0x05E3, /* CRC16() of "QEMU" */
+        .idProduct         = 0x0F05,
+        .bcdDevice         = 0x6701,
         .iManufacturer     = STR_MANUFACTURER,
         .iProduct          = STR_PRODUCT,
         .iSerialNumber     = STR_SERIALNUMBER,
@@ -175,6 +181,7 @@ static const USBDesc desc = {
     .high  = &desc_device_high,
     .super = &desc_device_super,
     .str   = desc_strings,
+    .msos  = &desc_msos,
 };
 
 static void usb_msd_copy_data(MSDState *s, USBPacket *p)
