@@ -32,58 +32,16 @@
 
 /* ------------------------------------------------------------------ */
 
-typedef struct msos_compat_hdr {
-    uint32_t dwLength;
-    uint8_t  bcdVersion_lo;
-    uint8_t  bcdVersion_hi;
-    uint8_t  wIndex_lo;
-    uint8_t  wIndex_hi;
-    uint8_t  bCount;
-    uint8_t  reserved[7];
-} QEMU_PACKED msos_compat_hdr;
-
-typedef struct msos_compat_func {
-    uint8_t  bFirstInterfaceNumber;
-    uint8_t  reserved_1;
-    char     compatibleId[8];
-    uint8_t  subCompatibleId[8];
-    uint8_t  reserved_2[6];
-} QEMU_PACKED msos_compat_func;
-
-static int usb_desc_msos_compat(const USBDesc *desc, uint8_t *dest)
-{
-    msos_compat_hdr *hdr = (void *)dest;
-    msos_compat_func *func;
-    int length = sizeof(*hdr);
-    int count = 0;
-
-    func = (void *)(dest + length);
-    func->bFirstInterfaceNumber = 0;
-    func->reserved_1 = 0x01;
-    if (desc->msos->CompatibleID) {
-        snprintf(func->compatibleId, sizeof(func->compatibleId),
-                 "%s", desc->msos->CompatibleID);
-    }
-    length += sizeof(*func);
-    count++;
-
-    hdr->dwLength      = cpu_to_le32(length);
-    hdr->bcdVersion_lo = 0x00;
-    hdr->bcdVersion_hi = 0x01;
-    hdr->wIndex_lo     = 0x04;
-    hdr->wIndex_hi     = 0x00;
-    hdr->bCount        = count;
-    return length;
-}
-
-/* ------------------------------------------------------------------ */
-
 typedef struct msos_prop_hdr {
     uint32_t dwLength;
     uint8_t  bcdVersion_lo;
     uint8_t  bcdVersion_hi;
+
     uint8_t  wIndex_lo;
-    uint8_t  wIndex_hi;
+    uint8_t  wIndex_hi;    
+    #define ExtendedCompatID   (0x0004)
+    #define ExtendedProperties (0x0005)
+
     uint8_t  wCount_lo;
     uint8_t  wCount_hi;
 } QEMU_PACKED msos_prop_hdr;
@@ -201,13 +159,60 @@ static int usb_desc_msos_prop(const USBDesc *desc, uint8_t *dest)
         count++;
     }
 
+
     hdr->dwLength      = cpu_to_le32(length);
     hdr->bcdVersion_lo = 0x00;
     hdr->bcdVersion_hi = 0x01;
-    hdr->wIndex_lo     = 0x05;
-    hdr->wIndex_hi     = 0x00;
+    hdr->wIndex_lo     = (ExtendedProperties >> 0) & 0xff;
+    hdr->wIndex_hi     = (ExtendedProperties >> 4) & 0xff;
     hdr->wCount_lo     = usb_lo(count);
     hdr->wCount_hi     = usb_hi(count);
+    return length;
+}
+
+/* ------------------------------------------------------------------ */
+
+typedef struct msos_compat_hdr {
+    uint32_t dwLength;
+    uint8_t  bcdVersion_lo;
+    uint8_t  bcdVersion_hi;
+    uint8_t  wIndex_lo;
+    uint8_t  wIndex_hi;
+    uint8_t  bCount;
+    uint8_t  reserved[7];
+} QEMU_PACKED msos_compat_hdr;
+
+typedef struct msos_compat_func {
+    uint8_t  bFirstInterfaceNumber;
+    uint8_t  reserved_1;
+    char     compatibleId[8];
+    uint8_t  subCompatibleId[8];
+    uint8_t  reserved_2[6];
+} QEMU_PACKED msos_compat_func;
+
+static int usb_desc_msos_compat(const USBDesc *desc, uint8_t *dest)
+{
+    msos_compat_hdr *hdr = (void *)dest;
+    msos_compat_func *func;
+    int length = sizeof(*hdr);
+    int count = 0;
+
+    func = (void *)(dest + length);
+    func->bFirstInterfaceNumber = 0;
+    func->reserved_1 = 0x01;
+    if (desc->msos->CompatibleID) {
+        snprintf(func->compatibleId, sizeof(func->compatibleId),
+                 "%s", desc->msos->CompatibleID);
+    }
+    length += sizeof(*func);
+    count++;
+
+    hdr->dwLength      = cpu_to_le32(length);
+    hdr->bcdVersion_lo = 0x00;
+    hdr->bcdVersion_hi = 0x01;
+    hdr->wIndex_lo     = (ExtendedCompatID >> 0) & 0xFF;
+    hdr->wIndex_hi     = (ExtendedCompatID >> 4) & 0xFF;
+    hdr->bCount        = count;
     return length;
 }
 

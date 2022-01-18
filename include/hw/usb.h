@@ -219,7 +219,6 @@ enum USBDeviceFlags {
     USB_DEV_FLAG_IS_HOST,
     USB_DEV_FLAG_MSOS_DESC_ENABLE,
     USB_DEV_FLAG_MSOS_DESC_IN_USE,
-    USB_DEV_FLAG_MSOS_DESC_WINUSB,
 };
 
 /* definition of a USB device */
