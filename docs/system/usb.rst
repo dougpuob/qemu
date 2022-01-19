@@ -81,6 +81,9 @@ option or the ``device_add`` monitor command. Available devices are:
 ``usb-audio``
    USB audio device
 
+``usb-winusb``
+   Microsoft WinUsb device.
+
 ``u2f-{emulated,passthru}``
    Universal Second Factor device
 
