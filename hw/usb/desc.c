@@ -618,7 +618,6 @@ int usb_desc_string(USBDevice *dev, int index, uint8_t *dest, size_t len)
     }
 
     bLength = strlen(str) * 2 + 2;
-    
     dest[0] = bLength;
     dest[1] = USB_DT_STRING;
     i = 0; pos = 2;
@@ -626,10 +625,7 @@ int usb_desc_string(USBDevice *dev, int index, uint8_t *dest, size_t len)
         dest[pos++] = str[i++];
         dest[pos++] = 0;
     }
-    
-    //printf("str=%s\n", str);
-    //printf("bLength=%d\n", bLength);
-    
+
     if (desc->msos && desc->msos->IsWinUsb) {
         // 'MSFT100Q' --> 'MSFT100\0'
         if (0 == strcmp("MSFT100Q", str)) {
@@ -821,6 +817,7 @@ int usb_desc_handle_control(USBDevice *dev, USBPacket *p,
             trace_usb_desc_msos(dev->addr, index, length, ret);
         }
         break;
+
     }
     return ret;
 }

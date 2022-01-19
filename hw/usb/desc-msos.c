@@ -159,7 +159,6 @@ static int usb_desc_msos_prop(const USBDesc *desc, uint8_t *dest)
         count++;
     }
 
-
     hdr->dwLength      = cpu_to_le32(length);
     hdr->bcdVersion_lo = 0x00;
     hdr->bcdVersion_hi = 0x01;
@@ -225,10 +224,10 @@ int usb_desc_msos(const USBDesc *desc,  USBPacket *p,
     int length = 0;
 
     switch (index) {
-    case 0x0004:
+    case ExtendedCompatID:
         length = usb_desc_msos_compat(desc, buf);
         break;
-    case 0x0005:
+    case ExtendedProperties:
         length = usb_desc_msos_prop(desc, buf);
         break;
     }

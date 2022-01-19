@@ -8,18 +8,9 @@
  */
 
 #include "qemu/osdep.h"
-#include "qapi/error.h"
-#include "qemu/error-report.h"
-#include "qemu/module.h"
-#include "qemu/option.h"
-#include "qemu/config-file.h"
 #include "hw/usb.h"
-#include "hw/usb/msd.h"
 #include "desc.h"
-#include "hw/qdev-properties.h"
-#include "hw/scsi/scsi.h"
 #include "migration/vmstate.h"
-#include "qemu/cutils.h"
 #include "qom/object.h"
 #include "trace.h"
 
@@ -46,10 +37,10 @@ enum {
 
 static const USBDescStrings desc_strings = {
     [STR_MANUFACTURER] = "GenesysLogic",
-    [STR_PRODUCT]      = "Win USB Dev",
+    [STR_PRODUCT]      = "QEMU WinUsb Device",
     [STR_SERIALNUMBER] = "000000000012",
-    [STR_CONFIG_FULL]  = "Full speed config (usb 1.1)",
-    [STR_CONFIG_HIGH]  = "High speed config (usb 2.0)",
+    [STR_CONFIG_FULL]  = "Full speed config (USB 1.1)",
+    [STR_CONFIG_HIGH]  = "High speed config (USB 2.0)",
 };
 
 static const USBDescIface desc_iface_full = {
