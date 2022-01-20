@@ -30,6 +30,9 @@
  *
  */
 
+#define ExtendedCompatID   (0x0004)
+#define ExtendedProperties (0x0005)
+
 /* ------------------------------------------------------------------ */
 
 typedef struct msos_compat_hdr {
@@ -70,8 +73,8 @@ static int usb_desc_msos_compat(const USBDesc *desc, uint8_t *dest)
     hdr->dwLength      = cpu_to_le32(length);
     hdr->bcdVersion_lo = 0x00;
     hdr->bcdVersion_hi = 0x01;
-    hdr->wIndex_lo     = 0x04;
-    hdr->wIndex_hi     = 0x00;
+    hdr->wIndex_lo     = (ExtendedCompatID >> 0) & 0xFF;
+    hdr->wIndex_hi     = (ExtendedCompatID >> 4) & 0xFF;
     hdr->bCount        = count;
     return length;
 }
@@ -204,8 +207,8 @@ static int usb_desc_msos_prop(const USBDesc *desc, uint8_t *dest)
     hdr->dwLength      = cpu_to_le32(length);
     hdr->bcdVersion_lo = 0x00;
     hdr->bcdVersion_hi = 0x01;
-    hdr->wIndex_lo     = 0x05;
-    hdr->wIndex_hi     = 0x00;
+    hdr->wIndex_lo     = (ExtendedProperties >> 0) & 0xff;
+    hdr->wIndex_hi     = (ExtendedProperties >> 4) & 0xff;
     hdr->wCount_lo     = usb_lo(count);
     hdr->wCount_hi     = usb_hi(count);
     return length;
@@ -220,10 +223,10 @@ int usb_desc_msos(const USBDesc *desc,  USBPacket *p,
     int length = 0;
 
     switch (index) {
-    case 0x0004:
+    case ExtendedCompatID:
         length = usb_desc_msos_compat(desc, buf);
         break;
-    case 0x0005:
+    case ExtendedProperties:
         length = usb_desc_msos_prop(desc, buf);
         break;
     }
