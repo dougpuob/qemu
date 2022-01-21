@@ -1,6 +1,7 @@
 #include "qemu/osdep.h"
 #include "hw/usb.h"
 #include "desc.h"
+#include "desc-msos.h"
 
 /*
  * Microsoft OS Descriptors
@@ -28,10 +29,45 @@
  *
  * http://msdn.microsoft.com/en-us/library/windows/hardware/ff537430.aspx
  *
+ *
+ * Microsoft OS 1.0 Descriptors Specification (OS_Desc_Intro.doc)
+ * (https://download.microsoft.com/download/9/C/5/9C5B2167-8017-4BAE-9FDE-D599BAC8184A/OS_Desc_Ext_Prop.zip)
+ *
  */
 
 #define ExtendedCompatID   (0x0004)
 #define ExtendedProperties (0x0005)
+
+/* ------------------------------------------------------------------ */
+/* Table 3. OS String Descriptor Fields (OS_Desc_Intro.doc)           */
+typedef struct msos_str_desc {
+    uint8_t  bLength;
+    uint8_t  bDescriptorType;
+    uint16_t qwSignature[7];
+    uint8_t  bMS_VendorCode;
+    uint8_t  bPad;
+} QEMU_PACKED msos_str_desc;
+
+int usb_desc_msos_str_desc(const char* str, uint8_t *dest, uint8_t ven_code)
+{
+    msos_str_desc *str_desc = (msos_str_desc *)dest;
+    const int len = strlen(str);
+    assert(7 == len);
+
+    str_desc->bLength = sizeof(msos_str_desc);
+    str_desc->bDescriptorType = USB_DT_STRING;
+    str_desc->qwSignature[0] = (uint16_t)str[0];
+    str_desc->qwSignature[1] = (uint16_t)str[1];
+    str_desc->qwSignature[2] = (uint16_t)str[2];
+    str_desc->qwSignature[3] = (uint16_t)str[3];
+    str_desc->qwSignature[4] = (uint16_t)str[4];
+    str_desc->qwSignature[5] = (uint16_t)str[5];
+    str_desc->qwSignature[6] = (uint16_t)str[6];
+    str_desc->bMS_VendorCode = ven_code;
+    str_desc->bPad = 0x00;
+
+    return sizeof(msos_str_desc);
+}
 
 /* ------------------------------------------------------------------ */
 

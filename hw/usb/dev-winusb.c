@@ -115,7 +115,6 @@ static const USBDescDevice desc_device_high = {
 
 static const USBDescMSOS desc_msos = {
     .CompatibleID = "WINUSB",
-    .IsWinUsb     = true,
 };
 
 static const USBDesc desc = {
