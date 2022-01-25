@@ -610,15 +610,13 @@ int usb_desc_string(USBDevice *dev, int index, uint8_t *dest, size_t len)
         return 4;
     }
 
-    if (index == MSOS_DESC_INDEX) {
-        /* language ids */
+    str = usb_desc_get_string(dev, index);
+	if (index == MSOS_DESC_INDEX) {
         if (dev->flags & (1 << USB_DEV_FLAG_MSOS_DESC_IN_USE)) {
-            str = usb_desc_get_string(dev, index);
-            return usb_desc_msos_str_desc(str, dest, 0x00);
+            return usb_desc_msos_str_desc(desc, str, dest);
         }
     }
 
-    str = usb_desc_get_string(dev, index);
     if (str == NULL) {
         str = usb_device_get_usb_desc(dev)->str[index];
         if (str == NULL) {

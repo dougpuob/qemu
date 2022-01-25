@@ -7,6 +7,6 @@
 #define MSOS_DESC_INDEX (0xee)
 
 /* generate microsoft string descriptor from structs */
-int usb_desc_msos_str_desc(const char* str, uint8_t *dest, uint8_t ven_code);
+int usb_desc_msos_str_desc(const USBDesc *desc, const char* str, uint8_t *dest);
 
 #endif /* QEMU_HW_USB_DESC_MSOS_H */

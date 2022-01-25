@@ -10,6 +10,7 @@
 #include "qemu/osdep.h"
 #include "hw/usb.h"
 #include "desc.h"
+#include "desc-msos.h"
 #include "migration/vmstate.h"
 #include "qom/object.h"
 #include "trace.h"
@@ -114,14 +115,17 @@ static const USBDescDevice desc_device_high = {
 };
 
 static const USBDescMSOS desc_msos = {
-    .CompatibleID = "WINUSB",
+    .bMS_VendorCode       = 0xAA,
+    .CompatibleID         = "WINUSB",
+    .RegistryPropertyName = L"DeviceInterfaceGUID",
+    .RegistryPropertyData = L"{352F2E63-5DCF-4F86-BDB6-37AE489304E8}",
 };
 
 static const USBDesc desc = {
     .id = {
         .idVendor          = 0x05E3,
-        .idProduct         = 0x0F05,
-        .bcdDevice         = 0x6701,
+        .idProduct         = 0x3E50,
+        .bcdDevice         = 0x0000,
         .iManufacturer     = STR_MANUFACTURER,
         .iProduct          = STR_PRODUCT,
         .iSerialNumber     = STR_SERIALNUMBER,
@@ -158,23 +162,24 @@ static void usb_winusb_handle_reset(USBDevice *dev)
 static void usb_winusb_handle_control(USBDevice *dev, USBPacket *p,
                int request, int value, int index, int length, uint8_t *data)
 {
-    uint8_t bmRequestType, bRequest;
+    uint8_t bmRequestType;
+    int ret = 0;
     WinUsbState *s = USB_WINUSB_DEV(dev);
 
     trace_usb_winusb_handle_control(dev, request, value, index, length);
-
-    int ret = usb_desc_handle_control(dev, p, request, value, index, length, data);
+    ret = usb_desc_handle_control(dev, p, request, value, index, length, data);
     if (ret >= 0) {
         return;
     }
 
     bmRequestType = (request >> 8) & 0xFF;
-    bRequest = (request >> 0) & 0xFF;
 
-    #define OsFeatureDescriptor (0xC0)
+    #define OsFeatureDescriptorC0 (0xC0)
+    #define OsFeatureDescriptorC1 (0xC1)
 
     switch (bmRequestType) {
-    case OsFeatureDescriptor:
+    case OsFeatureDescriptorC0:
+    case OsFeatureDescriptorC1:
         usb_desc_msos(s->dev.usb_desc, p, index, data, length);
         p->actual_length = length;
         break;
@@ -225,10 +230,10 @@ static void usb_winusb_class_initfn_common(ObjectClass *klass, void *data)
 }
 
 static const TypeInfo usb_winusb_dev_type_info = {
-    .name = TYPE_USB_WINUSB,
-    .parent = TYPE_USB_DEVICE,
+    .name          = TYPE_USB_WINUSB,
+    .parent        = TYPE_USB_DEVICE,
     .instance_size = sizeof(WinUsbState),
-    .class_init = usb_winusb_class_initfn_common,
+    .class_init    = usb_winusb_class_initfn_common,
 };
 
 static void usb_winusb_register_types(void)

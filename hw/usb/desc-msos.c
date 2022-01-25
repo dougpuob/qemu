@@ -48,7 +48,7 @@ typedef struct msos_str_desc {
     uint8_t  bPad;
 } QEMU_PACKED msos_str_desc;
 
-int usb_desc_msos_str_desc(const char* str, uint8_t *dest, uint8_t ven_code)
+int usb_desc_msos_str_desc(const USBDesc *desc, const char* str, uint8_t *dest)
 {
     msos_str_desc *str_desc = (msos_str_desc *)dest;
     const int len = strlen(str);
@@ -63,7 +63,8 @@ int usb_desc_msos_str_desc(const char* str, uint8_t *dest, uint8_t ven_code)
     str_desc->qwSignature[4] = (uint16_t)str[4];
     str_desc->qwSignature[5] = (uint16_t)str[5];
     str_desc->qwSignature[6] = (uint16_t)str[6];
-    str_desc->bMS_VendorCode = ven_code;
+    if (desc->msos)
+        str_desc->bMS_VendorCode = desc->msos->bMS_VendorCode;
     str_desc->bPad = 0x00;
 
     return sizeof(msos_str_desc);
@@ -109,8 +110,8 @@ static int usb_desc_msos_compat(const USBDesc *desc, uint8_t *dest)
     hdr->dwLength      = cpu_to_le32(length);
     hdr->bcdVersion_lo = 0x00;
     hdr->bcdVersion_hi = 0x01;
-    hdr->wIndex_lo     = (ExtendedCompatID >> 0) & 0xFF;
-    hdr->wIndex_hi     = (ExtendedCompatID >> 4) & 0xFF;
+    hdr->wIndex_lo     = usb_lo(ExtendedCompatID);
+    hdr->wIndex_hi     = usb_hi(ExtendedCompatID);
     hdr->bCount        = count;
     return length;
 }
@@ -218,13 +219,10 @@ static int usb_desc_msos_prop(const USBDesc *desc, uint8_t *dest)
     int length = sizeof(*hdr);
     int count = 0;
 
-    if (desc->msos->Label) {
-        /*
-         * Given as example in the specs.  Haven't figured yet where
-         * this label shows up in the windows gui.
-         */
+    if (desc->msos->RegistryPropertyName && desc->msos->RegistryPropertyData) {
         length += usb_desc_msos_prop_str(dest+length, MSOS_REG_SZ,
-                                         L"Label", desc->msos->Label);
+                                         desc->msos->RegistryPropertyName,
+                                         desc->msos->RegistryPropertyData);
         count++;
     }
 
@@ -243,12 +241,13 @@ static int usb_desc_msos_prop(const USBDesc *desc, uint8_t *dest)
     hdr->dwLength      = cpu_to_le32(length);
     hdr->bcdVersion_lo = 0x00;
     hdr->bcdVersion_hi = 0x01;
-    hdr->wIndex_lo     = (ExtendedProperties >> 0) & 0xff;
-    hdr->wIndex_hi     = (ExtendedProperties >> 4) & 0xff;
+    hdr->wIndex_lo     = usb_lo(ExtendedProperties);
+    hdr->wIndex_hi     = usb_hi(ExtendedProperties);
     hdr->wCount_lo     = usb_lo(count);
     hdr->wCount_hi     = usb_hi(count);
     return length;
 }
+
 
 /* ------------------------------------------------------------------ */
 
