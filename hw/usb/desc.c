@@ -804,13 +804,13 @@ int usb_desc_handle_control(USBDevice *dev, USBPacket *p,
         trace_usb_set_interface(dev->addr, index, value, ret);
         break;
 
-    case VendorDeviceRequest | 'Q':
+    case VendorDeviceRequest | MSOS_VENDOR_CODE_QEMU:
         if (msos) {
             ret = usb_desc_msos(desc, p, index, data, length);
             trace_usb_desc_msos(dev->addr, index, length, ret);
         }
         break;
-    case VendorInterfaceRequest | 'Q':
+    case VendorInterfaceRequest | MSOS_VENDOR_CODE_QEMU:
         if (msos) {
             ret = usb_desc_msos(desc, p, index, data, length);
             trace_usb_desc_msos(dev->addr, index, length, ret);

@@ -115,7 +115,7 @@ static const USBDescDevice desc_device_high = {
 };
 
 static const USBDescMSOS desc_msos = {
-    .bMS_VendorCode       = 0xAA,
+    .bMS_VendorCode       = MSOS_VENDOR_CODE_QEMU,
     .CompatibleID         = "WINUSB",
     .RegistryPropertyName = L"DeviceInterfaceGUID",
     .RegistryPropertyData = L"{352F2E63-5DCF-4F86-BDB6-37AE489304E8}",
@@ -162,32 +162,17 @@ static void usb_winusb_handle_reset(USBDevice *dev)
 static void usb_winusb_handle_control(USBDevice *dev, USBPacket *p,
                int request, int value, int index, int length, uint8_t *data)
 {
-    uint8_t bmRequestType;
     int ret = 0;
-    WinUsbState *s = USB_WINUSB_DEV(dev);
 
     trace_usb_winusb_handle_control(dev, request, value, index, length);
+
     ret = usb_desc_handle_control(dev, p, request, value, index, length, data);
     if (ret >= 0) {
         return;
     }
 
-    bmRequestType = (request >> 8) & 0xFF;
-
-    #define OsFeatureDescriptorC0 (0xC0)
-    #define OsFeatureDescriptorC1 (0xC1)
-
-    switch (bmRequestType) {
-    case OsFeatureDescriptorC0:
-    case OsFeatureDescriptorC1:
-        usb_desc_msos(s->dev.usb_desc, p, index, data, length);
-        p->actual_length = length;
-        break;
-
-    default:
-        p->status = USB_RET_STALL;
-        break;
-    }
+    p->status = USB_RET_STALL;
+    return;
 }
 
 static void usb_winusb_cancel_io(USBDevice *dev, USBPacket *p)

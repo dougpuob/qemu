@@ -28,6 +28,7 @@
 #include "hw/usb.h"
 #include "migration/vmstate.h"
 #include "desc.h"
+#include "desc-msos.h"
 #include "qapi/error.h"
 #include "qemu/module.h"
 #include "qemu/timer.h"
@@ -35,7 +36,6 @@
 #include "hw/usb/hid.h"
 #include "hw/qdev-properties.h"
 #include "qom/object.h"
-
 struct USBHIDState {
     USBDevice dev;
     USBEndpoint *intr;
@@ -363,6 +363,7 @@ static const USBDescDevice desc_device_keyboard2 = {
 };
 
 static const USBDescMSOS desc_msos_suspend = {
+    .bMS_VendorCode = MSOS_VENDOR_CODE_QEMU,
     .SelectiveSuspendEnabled = true,
 };
 
