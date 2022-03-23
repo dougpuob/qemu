@@ -117,7 +117,7 @@ static const USBDescMSOS desc_msos = {
     .bMS_VendorCode       = MSOS_VENDOR_CODE_QEMU,
     .CompatibleID         = "WINUSB",
     .RegistryPropertyName = L"DeviceInterfaceGUID",
-    .RegistryPropertyData = L"{352F2E63-5DCF-4F86-BDB6-37AE489304E8}",
+    .RegistryPropertyData = L"{dee824ef-729b-4a0e-9c14-b7117d33a817}",
 };
 
 static const USBDesc desc = {
