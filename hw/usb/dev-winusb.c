@@ -15,12 +15,24 @@
 #include "qom/object.h"
 #include "trace.h"
 
+typedef struct _DataBuffer {
+    uint8_t* data;
+    int len;;
+} DataBuffer;
+
+typedef struct _LoopDevices {
+    DataBuffer bulk;
+} LoopDevices;
+
 struct WinUsbState {
     USBDevice dev;
-    /* For async completion.  */
+
+    /* Buffer of Loop devices */
+    LoopDevices loop_devs;
+
     USBPacket *packet;
     /* WinUSB only. */
-    };
+};
 
 typedef struct WinUsbState WinUsbState;
 #define TYPE_USB_WINUSB "usb-winusb"
@@ -44,22 +56,57 @@ static const USBDescStrings desc_strings = {
 };
 
 static const USBDescIface desc_iface_full = {
-    .bInterfaceNumber              = 0,
-    .bNumEndpoints                 = 2,
-    .bInterfaceClass               = USB_CLASS_VENDOR_SPEC,
-    .bInterfaceSubClass            = 0x06, /* SCSI */
-    .bInterfaceProtocol            = 0x50, /* Bulk */
-    .eps = (USBDescEndpoint[]) {
-        {
-            .bEndpointAddress      = USB_DIR_IN | 0x01,
-            .bmAttributes          = USB_ENDPOINT_XFER_BULK,
-            .wMaxPacketSize        = 64,
-        },{
-            .bEndpointAddress      = USB_DIR_OUT | 0x02,
-            .bmAttributes          = USB_ENDPOINT_XFER_BULK,
-            .wMaxPacketSize        = 64,
-        },
-    }
+        .bInterfaceNumber              = 0,
+        .bNumEndpoints                 = 2,
+        .bInterfaceClass               = USB_CLASS_VENDOR_SPEC,
+        .bInterfaceSubClass            = 0x06, /* SCSI */
+        .bInterfaceProtocol            = 0x50, /* Bulk */
+        .eps = (USBDescEndpoint[]) {
+            {
+                .bEndpointAddress      = USB_DIR_IN | 0x01,
+                .bmAttributes          = USB_ENDPOINT_XFER_BULK,
+                .wMaxPacketSize        = 64,
+            },{
+                .bEndpointAddress      = USB_DIR_OUT | 0x02,
+                .bmAttributes          = USB_ENDPOINT_XFER_BULK,
+                .wMaxPacketSize        = 64,
+            },
+            // {
+            //     .bEndpointAddress      = USB_DIR_IN | 0x03,
+            //     .bmAttributes          = USB_ENDPOINT_XFER_INT,
+            //     .wMaxPacketSize        = 9,
+            //     .bInterval             = 2,
+            // },
+            // {
+            //     .bEndpointAddress      = USB_DIR_OUT | 0x04,
+            //     .bmAttributes          = USB_ENDPOINT_XFER_INT,
+            //     .wMaxPacketSize        = 9,
+            //     .bInterval             = 2,
+            // },
+        }
+    //}
+    // ,
+    // {
+    //     .bInterfaceNumber              = 1,
+    //     .bNumEndpoints                 = 2,
+    //     .bInterfaceClass               = USB_CLASS_VENDOR_SPEC,
+    //     .bInterfaceSubClass            = 0x00, /*(No Subclass)*/
+    //     .bInterfaceProtocol            = 0x00, /*(None)*/
+    //     .eps = (USBDescEndpoint[]) {
+    //         {
+    //             .bEndpointAddress      = USB_DIR_IN | 0x03,
+    //             .bmAttributes          = USB_ENDPOINT_XFER_INT,
+    //             .wMaxPacketSize        = 9,
+    //             .bInterval             = 2,
+    //         },
+    //         {
+    //             .bEndpointAddress      = USB_DIR_OUT | 0x04,
+    //             .bmAttributes          = USB_ENDPOINT_XFER_INT,
+    //             .wMaxPacketSize        = 9,
+    //             .bInterval             = 2,
+    //         },
+    //     }
+    // }
 };
 
 static const USBDescDevice desc_device_full = {
@@ -144,18 +191,32 @@ static void usb_winusb_initfn(USBDevice *dev, const USBDesc *desc,
 
 static void usb_winusb_realize(USBDevice *dev, Error **errp)
 {
+    WinUsbState *s = USB_WINUSB_DEV(dev);
+    if (s) {
+        s->loop_devs.bulk.len = 200;
+        s->loop_devs.bulk.data = g_malloc0(s->loop_devs.bulk.len);
+    }
     usb_winusb_initfn(dev, &desc, errp);
 }
 
-static void usb_winusb_packet_complete(WinUsbState *s)
+static void usb_winusb_unrealize(USBDevice *dev)
 {
+    WinUsbState *s = USB_WINUSB_DEV(dev);
+    if (s->loop_devs.bulk.data) {
+        g_free(s->loop_devs.bulk.data);
+        s->loop_devs.bulk.data = NULL;
+    }
 }
+
+// static void usb_winusb_packet_complete(USBDevice *dev, USBPacket *p)
+// {
+//     p->state = USB_PACKET_ASYNC;
+//     usb_packet_complete(dev, p);
+// }
 
 static void usb_winusb_handle_reset(USBDevice *dev)
 {
-    WinUsbState *s = USB_WINUSB_DEV(dev);
     trace_usb_winusb_handle_reset(dev);
-    usb_winusb_packet_complete(s);
 }
 
 static void usb_winusb_handle_control(USBDevice *dev, USBPacket *p,
@@ -185,7 +246,33 @@ static void usb_winusb_cancel_io(USBDevice *dev, USBPacket *p)
 
 static void usb_winusb_handle_data(USBDevice *dev, USBPacket *p)
 {
+    WinUsbState *s = USB_WINUSB_DEV(dev);
+
     trace_usb_winusb_handle_data(dev);
+
+    switch (p->pid) {
+    case USB_TOKEN_OUT:
+        // Write Pipe
+        if (s->loop_devs.bulk.data) {
+            int copy_size = s->loop_devs.bulk.len;
+            copy_size = MIN(copy_size, p->iov.size);
+            usb_packet_copy(p, s->loop_devs.bulk.data, copy_size);
+        }
+        p->status = USB_RET_SUCCESS;
+        break;
+    case USB_TOKEN_IN:
+        // Read Pipe
+        if (s->loop_devs.bulk.data) {
+            int copy_size = s->loop_devs.bulk.len;
+            copy_size = MIN(copy_size, p->iov.size);
+            usb_packet_copy(p, s->loop_devs.bulk.data, copy_size);
+        }
+        p->status = USB_RET_SUCCESS;
+        break;
+    default:
+        p->status = USB_RET_STALL;
+        break;
+    }
 }
 
 static const VMStateDescription vmstate_winusb = {
@@ -211,6 +298,7 @@ static void usb_winusb_class_initfn_common(ObjectClass *klass, void *data)
     dc->vmsd = &vmstate_winusb;
 
     uc->realize = usb_winusb_realize;
+    uc->unrealize = usb_winusb_unrealize;
 }
 
 static const TypeInfo usb_winusb_dev_type_info = {
