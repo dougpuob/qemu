@@ -217,12 +217,17 @@ static void usb_winusb_unrealize(USBDevice *dev)
 static void usb_winusb_handle_reset(USBDevice *dev)
 {
     trace_usb_winusb_handle_reset(dev);
+    WinUsbState *s = USB_WINUSB_DEV(dev);
+    if (s->loop_devs.bulk.data) {
+        memset(s->loop_devs.bulk.data, 0, s->loop_devs.bulk.len);
+    }
 }
 
 static void usb_winusb_handle_control(USBDevice *dev, USBPacket *p,
                int request, int value, int index, int length, uint8_t *data)
 {
     int ret = 0;
+    WinUsbState *s = USB_WINUSB_DEV(dev);
 
     trace_usb_winusb_handle_control(dev, request, value, index, length);
 
@@ -231,7 +236,24 @@ static void usb_winusb_handle_control(USBDevice *dev, USBPacket *p,
         return;
     }
 
-    p->status = USB_RET_STALL;
+    switch (request) {
+    case EndpointOutRequest | USB_REQ_CLEAR_FEATURE:
+        switch (index) {
+        case 0x02:
+        case 0x81:
+            if (s->loop_devs.bulk.data) {
+                memset(s->loop_devs.bulk.data, 0, s->loop_devs.bulk.len);
+            }
+            break;
+        default:
+            break;
+        }
+        break;
+    default:
+        p->status = USB_RET_STALL;
+        break;
+    }
+
     return;
 }
 
@@ -258,7 +280,6 @@ static void usb_winusb_handle_data(USBDevice *dev, USBPacket *p)
             copy_size = MIN(copy_size, p->iov.size);
             usb_packet_copy(p, s->loop_devs.bulk.data, copy_size);
         }
-        p->status = USB_RET_SUCCESS;
         break;
     case USB_TOKEN_IN:
         // Read Pipe
@@ -267,7 +288,6 @@ static void usb_winusb_handle_data(USBDevice *dev, USBPacket *p)
             copy_size = MIN(copy_size, p->iov.size);
             usb_packet_copy(p, s->loop_devs.bulk.data, copy_size);
         }
-        p->status = USB_RET_SUCCESS;
         break;
     default:
         p->status = USB_RET_STALL;
