@@ -2,6 +2,7 @@
 
 #include "hw/usb.h"
 #include "desc.h"
+#include "desc-msos.h"
 #include "trace.h"
 
 /* ------------------------------------------------------------------ */
@@ -511,7 +512,7 @@ void usb_desc_init(USBDevice *dev)
     }
     if (desc->msos && (dev->flags & (1 << USB_DEV_FLAG_MSOS_DESC_ENABLE))) {
         dev->flags |= (1 << USB_DEV_FLAG_MSOS_DESC_IN_USE);
-        usb_desc_set_string(dev, 0xee, "MSFT100Q");
+        usb_desc_set_string(dev, MSOS_DESC_INDEX, "MSFT100");
     }
     usb_desc_setdefaults(dev);
 }
@@ -593,7 +594,9 @@ int usb_desc_string(USBDevice *dev, int index, uint8_t *dest, size_t len)
 {
     uint8_t bLength, pos, i;
     const char *str;
+    const USBDesc *desc = usb_device_get_usb_desc(dev);
 
+    assert(desc != NULL);
     if (len < 4) {
         return -1;
     }
@@ -608,6 +611,12 @@ int usb_desc_string(USBDevice *dev, int index, uint8_t *dest, size_t len)
     }
 
     str = usb_desc_get_string(dev, index);
+	if (index == MSOS_DESC_INDEX) {
+        if (dev->flags & (1 << USB_DEV_FLAG_MSOS_DESC_IN_USE)) {
+            return usb_desc_msos_str_desc(desc, str, dest);
+        }
+    }
+
     if (str == NULL) {
         str = usb_device_get_usb_desc(dev)->str[index];
         if (str == NULL) {
@@ -795,13 +804,13 @@ int usb_desc_handle_control(USBDevice *dev, USBPacket *p,
         trace_usb_set_interface(dev->addr, index, value, ret);
         break;
 
-    case VendorDeviceRequest | 'Q':
+    case VendorDeviceRequest | MSOS_VENDOR_CODE_QEMU:
         if (msos) {
             ret = usb_desc_msos(desc, p, index, data, length);
             trace_usb_desc_msos(dev->addr, index, length, ret);
         }
         break;
-    case VendorInterfaceRequest | 'Q':
+    case VendorInterfaceRequest | MSOS_VENDOR_CODE_QEMU:
         if (msos) {
             ret = usb_desc_msos(desc, p, index, data, length);
             trace_usb_desc_msos(dev->addr, index, length, ret);

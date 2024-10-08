@@ -27,6 +27,7 @@
 #include "hw/usb.h"
 #include "migration/vmstate.h"
 #include "desc.h"
+#include "desc-msos.h"
 #include "qemu/units.h"
 #include "qom/object.h"
 
@@ -357,7 +358,8 @@ static const USBDescDevice desc_device_high = {
 };
 
 static const USBDescMSOS desc_msos = {
-    .CompatibleID = "MTP",
+    .bMS_VendorCode = MSOS_VENDOR_CODE_QEMU,
+    .CompatibleID   = "MTP",
     .SelectiveSuspendEnabled = true,
 };
 

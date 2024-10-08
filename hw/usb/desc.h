@@ -183,9 +183,11 @@ struct USBDescOther {
 };
 
 struct USBDescMSOS {
-    const char                *CompatibleID;
-    const wchar_t             *Label;
+    uint8_t                   bMS_VendorCode;
     bool                      SelectiveSuspendEnabled;
+    const char                *CompatibleID;
+    const wchar_t             *RegistryPropertyName;
+    const wchar_t             *RegistryPropertyData;
 };
 
 typedef const char *USBDescStrings[256];
